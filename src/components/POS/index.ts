@@ -1,55 +1,52 @@
-import menu from "../../data/menu.ts"
+import menu from "../../data/menu";
 
 interface IOrder {
-  menu:string;
-  count:number;
+  menu: string;
+  count: number;
 }
 
 class POS {
-  currentOrderList:IOrder[];
+  orderList: Map<string, number>;
+  orderNumber: number; //주문번호
+  totalAmount: number; //주문 총액
+  isStart: boolean; //주문 시작 여부
+  menu: typeof menu;
 
   constructor() {
-    this.currentOrderNumber = 1; //번
-    this.currentOrderList = [];
-    this.totalAmount = 0; 
+    this.orderList = new Map<string, number>();
+    this.orderNumber = 1;
+    this.totalAmount = 0;
     this.isStart = false;
+    this.menu = menu;
   }
 
-  private startOrder(){
-    this.currentOrderNumber++;
+  private startOrder() {
+    this.orderNumber++;
     this.isStart = true;
   }
-  
-  private resetOrder(){
-    this.currentOrderList = [];
-    this.totalAmount = 0; 
+
+  private resetOrder() {
+    this.orderList = new Map<string, number>();
+    this.totalAmount = 0;
   }
 
-  checkSameMenuInPOS(menuName){
-    return this.currentOrderList.map(order => order.name).includes(menuName)
-  }
- 
-  setCurrentOrderList(order:IOrder){
-    if(!this.isStart) return; 
-    const {menu,count} = order; 
-
-    this.currentOrderList = [...this.currentOrderList, order] // 연속해서 줄경우
-  }
-  
-  setOrderToDashBoard(){
-    //현황판 클래스를 가져와서 등록한다.
-     //현황판.등록(this.currentOrderList);
-  }
-  
-  calculateExchangeAmount(receivedMoney :number){
-    const {totalAmount} = this.currentOrderList;
-    const exchange = totalAmount - receivedMoney
-    exchange >= 0 ? return exchange : alert(`${Math.abs(exchange)}원이 부족합니다.`);
+  setOrderList(order: IOrder) {
+    this.startOrder();
+    const { menu, count } = order;
+    this.orderList.set(menu, count);
   }
 
-  endOrder():number{
-    const requestedOrderNumber = this.currentOrderNumber;
+  calculateExchangeAmount(receivedMoney: number) {
+    //캐셔가 사용
+    const exchange = this.totalAmount - receivedMoney;
+    exchange >= 0 ? exchange : alert(`${Math.abs(exchange)}원이 부족합니다.`);
+  }
+
+  endOrder(): number {
+    //캐셔가 사용
+    const requestedOrderNumber = this.orderNumber;
     this.resetOrder();
+
     return requestedOrderNumber;
   }
 }
