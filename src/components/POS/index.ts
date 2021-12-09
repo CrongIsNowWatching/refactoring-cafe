@@ -1,6 +1,6 @@
 import menu from "../../data/menu";
 
-interface IOrder {
+export interface IOrder {
   menu: string;
   count: number;
 }
@@ -20,24 +20,28 @@ class POS {
     this.menu = menu;
   }
 
-  private startOrder() {
+  startOrder() {
     this.orderNumber++;
     this.isStart = true;
   }
 
-  private resetOrder() {
+  resetOrder() {
     this.orderList = new Map<string, number>();
     this.totalAmount = 0;
   }
 
   setOrderList(order: IOrder) {
-    this.startOrder();
+    console.log("setOrderList");
+    // this.startOrder();
+    this.orderNumber++;
+    this.isStart = true;
     const { menu, count } = order;
     this.orderList.set(menu, count);
   }
 
   calculateExchangeAmount(receivedMoney: number) {
     //캐셔가 사용
+    console.log("calculateExchangeAmount");
     const exchange = this.totalAmount - receivedMoney;
     exchange >= 0 ? exchange : alert(`${Math.abs(exchange)}원이 부족합니다.`);
   }
