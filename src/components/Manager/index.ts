@@ -1,63 +1,45 @@
 import Person from "../Person/";
+import CafeSystem from "components/CafeSystem";
+import DashBoard from "components/DashBoard";
 
-// todo: System 클래스를 만들기
-
-type Action = {
-  action: string;
-  callback: () => void;
-};
-
-class System {
-  actionList: Action[];
-
-  constructor() {
-    this.actionList = [];
-  }
-
-  // todo: notify - 실행되는 이벤트(action)를 파라미터로 받아서 this.actionList에서 일치하는 요소를 찾아 콜백함수를 실행. callback함수는 대상을 포함하고 있어야 함.
-  notify(action: string) {
-    const targetObserver = this.actionList.find(
-      observer => observer.action === action
-    );
-    targetObserver?.callback();
-  }
-
-  // todo: subscribe - this.actionList에 {action:action, callback: fn} 를 push함으로써 구독대상을 최초에 한번 등록.
-  subscribe({ action, callback }: Action) {
-    this.actionList.push({
-      action: action,
-      callback: callback,
-    });
-  }
-}
-
-let system = new System();
-
+//캐셔 주문 받는다 > POS 주문을 받은걸 대시보드에 업데이트 > 대시보드는 업데이트 한걸 배열에 가지고 있다 
+//매니저는 대시보드를 계속 보고있다(checkOrderList). 지금 바리스타가 음료를 만들고 있지 않다면 대시보드의 주문표를 준다. 
+//바리스타는 받은 주문표리스트에 있는 음료를 최대 2개까지 동시에 만든다. 바리스타가 음료를 다 만들면 시스템을 통해 완성됨을 알린다.
+//매니저는 대시보드를 보고있다가 바리스타가 음료 상태 업데이트 해주면 음료를 ?????
+// Manager도 makeCoffee에 대한 action을 register 해야함.
+//매니저(Manager)는 바리스타가 보낸 특정 고객의 음료 제작 완료 이벤트를 받으면 현황판을 업데이트한다.
+//매니저(Manager)는 음료를 확인하기 위해서 주문 대기표를 1초마다 확인한다.
 class Manager extends Person {
   constructor() {
     super();
+    this.totalOrderList = [];
   }
 
   // * 주문 대기표(orderList)를 1초마다 확인한다.
   // * 바리스타가 음료제작완료 이벤트를 발생시키면 dashboard를 업데이트 한다.
 
-  subscribeOrderList() {
-    system.subscribe({
+  checkOrderList() {
+    this.totalOrderList = DashBoard.returnOrderList();
+  }
+
+
+  subscribeDashboard() {
+    CafeSystem.register({
       action: "newOrderCameIn",
       callback: this.notifyBarista,
     });
-    system.subscribe({
+    CafeSystem.register({
       action: "drinkIsReady",
       callback: this.updateDashboard,
     });
     // -------test--------
-    system.subscribe({
+    CafeSystem.register({
       action: "makeDrink",
       callback: () => {
         console.log("바리스타가 음료를 만들기 시작했습니다.");
       },
     });
-    system.subscribe({
+    CafeSystem.register({
       action: "ringBuzzer",
       callback: () => {
         console.log("현황판에 완성된 주문번호를 업데이트 하였습니다.");
@@ -66,11 +48,13 @@ class Manager extends Person {
     // ------------------
   }
 
+  // * manager는 시스템에 업데이트 한다.(o)
+  // * 바리스타에 직접 알려주지 않음. 바리스타가 시스템을 구독(x)
   notifyBarista() {
     () => {
       //notifyBarista
       console.log("notifyBarista");
-      system.notify("makeDrink"); //barista가 makeDrink라는 걸 구독하고 있다는 가정.
+      CafeSystem.execute("makeDrink"); //barista가 makeDrink라는 걸 구독하고 있다는 가정.
     };
   }
 
@@ -78,7 +62,7 @@ class Manager extends Person {
     () => {
       //updateDashboard
       console.log("updateDashboard");
-      system.notify("ringBuzzer"); //dashBoard가 ringBuzzer라는 걸 구독하고 있다는 가정.
+      CafeSystem.execute("ringBuzzer"); //dashBoard가 ringBuzzer라는 걸 구독하고 있다는 가정.
     };
   }
 }

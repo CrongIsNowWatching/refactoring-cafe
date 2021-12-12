@@ -25,6 +25,10 @@ class POS {
     this.isStart = true;
   }
 
+  getOrderList(){
+    return this.orderList;
+  }
+
   resetOrder() {
     this.orderList = new Map<string, number>();
     this.totalAmount = 0;
@@ -37,6 +41,7 @@ class POS {
     this.isStart = true;
     const { menu, count } = order;
     this.orderList.set(menu, count);
+
   }
 
   calculateExchangeAmount(receivedMoney: number) {
@@ -49,10 +54,12 @@ class POS {
   endOrder(): number {
     //캐셔가 사용
     const requestedOrderNumber = this.orderNumber;
+    // system.execute('updateDashboard')
     this.resetOrder();
 
     return requestedOrderNumber;
   }
 }
 
-export default POS;
+const POSMachine = new POS();
+export default POSMachine;

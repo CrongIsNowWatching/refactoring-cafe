@@ -1,5 +1,9 @@
 type notifyPayload = {
   action: string;
+  menu: {
+    menu: string;
+    count: number;
+  } | null;
 };
 
 type callbackPayload = {
@@ -14,10 +18,10 @@ class MySystem {
     this.actions = [];
   }
 
-  execute({ action }: notifyPayload): void {
+  execute({ action, payload = null }: notifyPayload): void {
     this.actions.forEach(({ actionName, callback }) => {
-      if (actionName === action) {
-        callback();
+      if (actionName === action ) {
+        payload ? callback(payload) : callback();
       }
     });
   }
@@ -45,3 +49,6 @@ class MySystem {
     );
   }
 }
+
+const CafeSystem = new MySystem();
+export default CafeSystem;
