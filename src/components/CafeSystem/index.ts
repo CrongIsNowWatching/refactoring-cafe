@@ -1,13 +1,14 @@
 type notifyPayload = {
   action: string;
-  menu: {
-    menu: string;
-    count: number;
+  payload: {
+    id: number;
+    name: string;
+    status: "ready" | "making" | "done";
   } | null;
 };
 
 type callbackPayload = {
-  actionName: string;
+  action: string;
   callback: Function;
 };
 
@@ -19,24 +20,28 @@ class MySystem {
   }
 
   execute({ action, payload = null }: notifyPayload): void {
-    this.actions.forEach(({ actionName, callback }) => {
+    this.actions.forEach(({ action: actionName, callback }) => {
       if (actionName === action ) {
-        payload ? callback(payload) : callback();
+        // if (action === "makeCoffee" || action === "doneMenu") {
+          // callback(payload)
+        // } else {
+          payload ? callback(payload) : callback();
+        // }
       }
     });
   }
-
   // https://radlohead.gitbook.io/typescript-deep-dive/type-system/exceptions#throw
   register(payload: callbackPayload): void | Error {
     if (this.validate(payload)) this.subscribe(payload);
     else return new Error("등록할 수 없는 작업입니다.");
   }
+
   remove(action: string) {
     this.unsubscribe(action);
   }
 
   private validate(payload: callbackPayload): boolean {
-    return payload.actionName && payload.callback ? true : false;
+    return payload.action && payload.callback ? true : false;
   }
 
   private subscribe(payload: callbackPayload) {
@@ -45,7 +50,7 @@ class MySystem {
 
   private unsubscribe(action: string) {
     this.actions = this.actions.filter(
-      ({ actionName }) => actionName !== action
+      ({ action: actionName }) => actionName !== action
     );
   }
 }

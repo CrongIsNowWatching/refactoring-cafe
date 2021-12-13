@@ -1,23 +1,22 @@
-import menu from "../../data/menu";
-
-export interface IOrder {
-  menu: string;
-  count: number;
+import {menu, menuType} from "../../data/menu";
+import DashBoard from "../DashBoard/";
+interface IDrinkOrder {
+  id: number;
+  name: string;
+  status: "ready" | "making" | "done";
 }
 
 class POS {
-  orderList: Map<string, number>;
+  order:IDrinkOrder | null;
   orderNumber: number; //주문번호
-  totalAmount: number; //주문 총액
   isStart: boolean; //주문 시작 여부
-  menu: typeof menu;
+  menuData: typeof menu;
 
   constructor() {
-    this.orderList = new Map<string, number>();
+    this.order = null;
     this.orderNumber = 1;
-    this.totalAmount = 0;
     this.isStart = false;
-    this.menu = menu;
+    this.menuData = menu;
   }
 
   startOrder() {
@@ -25,41 +24,41 @@ class POS {
     this.isStart = true;
   }
 
-  getOrderList(){
-    return this.orderList;
-  }
-
   resetOrder() {
-    this.orderList = new Map<string, number>();
-    this.totalAmount = 0;
+    this.order = null;
   }
 
-  setOrderList(order: IOrder) {
-    console.log("setOrderList");
-    // this.startOrder();
-    this.orderNumber++;
-    this.isStart = true;
-    const { menu, count } = order;
-    this.orderList.set(menu, count);
+  setOrder(order: string) {
+    this.startOrder();
+    this.order = {
+      id: this.orderNumber,
+      name: order,
+      status: "ready"
+    }
+  }
 
+  getMenuPriceInfo(order:string){
+    const price = this.menuData.get(order)
+    return price ? price : 0
   }
 
   calculateExchangeAmount(receivedMoney: number) {
-    //캐셔가 사용
-    console.log("calculateExchangeAmount");
-    const exchange = this.totalAmount - receivedMoney;
-    exchange >= 0 ? exchange : alert(`${Math.abs(exchange)}원이 부족합니다.`);
+    if(!this.order) return;
+    const {name} = this.order
+    const menuPrice = this.getMenuPriceInfo(name);
+    const exchange = menuPrice && menuPrice - receivedMoney;
+
+    return exchange >= 0 ? exchange : 0
   }
 
   endOrder(): number {
-    //캐셔가 사용
-    const requestedOrderNumber = this.orderNumber;
-    // system.execute('updateDashboard')
+    if(this.order) DashBoard.updateDashboard(this.order)
+    const currentOrderNumber = this.orderNumber;
     this.resetOrder();
 
-    return requestedOrderNumber;
+    return currentOrderNumber;
   }
 }
+const pos = new POS();
 
-const POSMachine = new POS();
-export default POSMachine;
+export default pos;

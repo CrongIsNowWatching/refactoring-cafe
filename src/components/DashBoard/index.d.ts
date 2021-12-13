@@ -1,4 +1,4 @@
-declare module "DashBoard" {
+declare module "./DashBoard" {
   class DashBoard {
     constructor();
     test(): void;

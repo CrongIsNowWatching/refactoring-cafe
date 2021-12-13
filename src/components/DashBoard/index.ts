@@ -1,5 +1,4 @@
-// 현황판(DashBoard)는 음료 주문 완성표를 주기적으로 화면에 출력한다.
-// 고객별로 음료수에 대해 대기중/제작중/완료 상태를 표시한다.
+import CafeSystem from "../CafeSystem";
 interface IDrinkOrder {
   id: number;
   name: string;
@@ -12,6 +11,8 @@ class DashBoard {
   
   constructor() {
     this.#list = [];
+    CafeSystem.register({action: "makeCoffee", callback: (menu: IDrinkOrder) => this.printAction("START", menu.id)});
+    CafeSystem.register({action: "doneMenu", callback: (id: IDrinkOrder["id"]) => this.printAction("END", id)});
   }
   
   // POS 주문을 받은걸 대시보드에 업데이트
@@ -28,13 +29,41 @@ class DashBoard {
   }
 
   // 매니저는 대시보드를 계속 보고있다(checkOrderList).
-  returnOrderList () {
+  returnOrderList(): IDrinkOrder[] {
     return this.#list;
   }
-  
+
+  // 만들어지는 커피가 있는지 확인
+  hasAnMakingOrder() :boolean {
+    for (const order of this.#list) {
+      if (order.status === "making") return true;
+    }
+    return false;
+  }
+
+  printAction(action: "START" | "END", id:number) {
+    if (!this.#list.length) {
+      console.log("현재 접수된 주문이 없습니다.")
+      return;
+    }
+    
+    let message;
+    const currentOrder = this.#list.filter((order) => order.id === id)[0];
+    if (action === "START"){
+      message = `${currentOrder.name}를 만들기 시작했습니다.`
+    } else if(action ==="END"){
+      message = `${currentOrder.name}가 완성되었습니다.`
+    }
+    
+    console.log(message);
+  }
+
+
 }
 
-export default DashBoard;
+const dashBoard = new DashBoard()
+
+export default dashBoard;
 
 // 바리스타(Barista)는 동시에 2개까지 음료를 만들 수 있다고 가정한다.
 // 스레드를 직접 생성하는 게 아니라 이벤트 방식으로 동작해야 한다.
