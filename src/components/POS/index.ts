@@ -1,57 +1,64 @@
-import menu from "../../data/menu.ts"
-
-interface IOrder {
-  menu:string;
-  count:number;
+import {menu, menuType} from "../../data/menu";
+import DashBoard from "../DashBoard/";
+interface IDrinkOrder {
+  id: number;
+  name: string;
+  status: "ready" | "making" | "done";
 }
 
 class POS {
-  currentOrderList:IOrder[];
+  order:IDrinkOrder | null;
+  orderNumber: number; //주문번호
+  isStart: boolean; //주문 시작 여부
+  menuData: typeof menu;
 
   constructor() {
-    this.currentOrderNumber = 1; //번
-    this.currentOrderList = [];
-    this.totalAmount = 0; 
+    this.order = null;
+    this.orderNumber = 1;
     this.isStart = false;
+    this.menuData = menu;
   }
 
-  private startOrder(){
-    this.currentOrderNumber++;
+  startOrder() {
+    this.orderNumber++;
     this.isStart = true;
   }
-  
-  private resetOrder(){
-    this.currentOrderList = [];
-    this.totalAmount = 0; 
+
+  resetOrder() {
+    this.order = null;
   }
 
-  checkSameMenuInPOS(menuName){
-    return this.currentOrderList.map(order => order.name).includes(menuName)
-  }
- 
-  setCurrentOrderList(order:IOrder){
-    if(!this.isStart) return; 
-    const {menu,count} = order; 
-
-    this.currentOrderList = [...this.currentOrderList, order] // 연속해서 줄경우
-  }
-  
-  setOrderToDashBoard(){
-    //현황판 클래스를 가져와서 등록한다.
-     //현황판.등록(this.currentOrderList);
-  }
-  
-  calculateExchangeAmount(receivedMoney :number){
-    const {totalAmount} = this.currentOrderList;
-    const exchange = totalAmount - receivedMoney
-    exchange >= 0 ? return exchange : alert(`${Math.abs(exchange)}원이 부족합니다.`);
+  setOrder(order: string) {
+    this.startOrder();
+    this.order = {
+      id: this.orderNumber,
+      name: order,
+      status: "ready"
+    }
   }
 
-  endOrder():number{
-    const requestedOrderNumber = this.currentOrderNumber;
+  getMenuPriceInfo(order:string){
+    const price = this.menuData.get(order)
+    return price ? price : 0
+  }
+
+  calculateExchangeAmount(receivedMoney: number) {
+    if(!this.order) return;
+    const {name} = this.order
+    const menuPrice = this.getMenuPriceInfo(name);
+    const exchange = menuPrice && menuPrice - receivedMoney;
+
+    return exchange >= 0 ? exchange : 0
+  }
+
+  endOrder(): number {
+    if(this.order) DashBoard.updateDashboard(this.order)
+    const currentOrderNumber = this.orderNumber;
     this.resetOrder();
-    return requestedOrderNumber;
+
+    return currentOrderNumber;
   }
 }
+const pos = new POS();
 
-export default POS;
+export default pos;
